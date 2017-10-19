@@ -4,6 +4,7 @@ package main
 
 import (
 	//"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	//"path/filepath"
@@ -23,7 +24,8 @@ import (
 
 type writeRequest struct {
 	p      *serport
-	d      string
+	// mychange: data type from string byte array
+	d      []byte
 	buffer bool
 	id     string
 	pause  int
@@ -36,7 +38,8 @@ type writeRequestJson struct {
 }
 
 type writeRequestJsonData struct {
-	D     string
+	// mychange: data type from string byte array
+	D     []byte
 	Id    string
 	Buf   string
 	Pause int
@@ -717,7 +720,18 @@ func spWrite(arg string) {
 	// include newline or not in the write? that is the question.
 	// for now lets skip the newline
 	//wr.d = []byte(args[2] + "\n")
-	wr.d = args[2] //[]byte(args[2])
+	
+	// mychange: try to parse arg as byte array
+	// wr.d = args[2] //[]byte(args[2])
+	b := []byte(args[2])
+	dst := make([]byte, hex.DecodedLen(len(b)))
+	n, errrr := hex.Decode(dst, b)
+	if errrr != nil {
+		log.Fatal(errrr)
+		//	log.Println("length:")
+		log.Println(n)
+	}
+	wr.d = dst
 
 	// send it to the write channel
 	sh.write <- wr

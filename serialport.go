@@ -2,11 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"sync"
-
-	"github.com/johnlauer/goserial"
-	//"github.com/facchinm/go-serial"
+	"senschilipeppr/goserial-for-binary"
 	"io"
 	"log"
 	"strconv"
@@ -133,7 +132,12 @@ func (p *serport) reader() {
 		// so process the bytes if n > 0
 		if n > 0 {
 			//log.Print("Read " + strconv.Itoa(n) + " bytes ch: " + string(ch))
-			data := string(ch[:n])
+
+			// mychange: no string conversion
+			data := ch[:n]
+			encodedStr := hex.EncodeToString(data)
+			dat := encodedStr + "\n"
+
 			//log.Print("The data i will convert to json is:")
 			//log.Print(data)
 
@@ -142,7 +146,7 @@ func (p *serport) reader() {
 			// writes to the serialport. each bufferflow type will decide
 			// this on its own based on its logic, i.e. tinyg vs grbl vs others
 			//p.b.bufferwatcher..OnIncomingData(data)
-			p.bufferwatcher.OnIncomingData(data)
+			p.bufferwatcher.OnIncomingData(dat)
 
 			// see if the OnIncomingData handled the broadcast back
 			// to the user. this option was added in case the OnIncomingData wanted
@@ -154,7 +158,7 @@ func (p *serport) reader() {
 
 			if p.bufferwatcher.IsBufferGloballySendingBackIncomingData() == false {
 				//m := SpPortMessage{"Alice", "Hello"}
-				m := SpPortMessage{p.portConf.Name, data}
+				m := SpPortMessage{p.portConf.Name, dat}
 				//log.Print("The m obj struct is:")
 				//log.Print(m)
 
@@ -230,7 +234,7 @@ func (p *serport) writerBuffered() {
 	// sees something come in
 	for data := range p.sendBuffered {
 
-		log.Printf("Got p.sendBuffered. data:%v, id:%v, pause:%v\n", strings.Replace(string(data.data), "\n", "\\n", -1), string(data.id), data.pause)
+		log.Printf("Got p.sendBuffered. data:%v, id:%v, pause:%v\n", strings.Replace(hex.EncodeToString([]byte(data.data)), "\n", "\\n", -1), string(data.id), data.pause)
 
 		// we want to block here if we are being asked
 		// to pause.
@@ -265,7 +269,7 @@ func (p *serport) writerNoBuf() {
 	// sees something come in
 	for data := range p.sendNoBuf {
 
-		log.Printf("Got p.sendNoBuf. id:%v, pause:%v, data:%v\n", string(data.id), data.pause, strings.Replace(string(data.data), "\n", "\\n", -1))
+		log.Printf("Got p.sendNoBuf. id:%v, pause:%v, data:%v\n", string(data.id), data.pause, strings.Replace(hex.EncodeToString([]byte(data.data)), "\n", "\\n", -1))
 
 		// if we get here, we were able to write successfully
 		// to the serial port because it blocks until it can write
