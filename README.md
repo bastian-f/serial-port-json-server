@@ -1,3 +1,13 @@
+# Serial Port Server
+
+forked from github.com/johnlauer/serial-port-json-server
+
+This is a modified version of the Serial Port JSON Server that supports sending
+binary data.
+
+Below the original readme:
+
+
 # Main location for this repo has been moved to https://github.com/chilipeppr/serial-port-json-server
 
 serial-port-json-server
